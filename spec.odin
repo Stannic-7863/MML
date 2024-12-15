@@ -78,6 +78,7 @@ Sort_Criteria :: struct {
 
 
 State :: struct {
+	mml_string:       string,
 	config:           Config,
 	camera:           Camera,
 	mouse:            Mouse,

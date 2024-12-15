@@ -1,12 +1,7 @@
 package main
 
 import "core:fmt"
-import "core:strings"
 import im "imgui"
-import im_glfw "imgui/imgui_impl_glfw"
-import im_gl "imgui/imgui_impl_opengl3"
-import gl "vendor:OpenGL"
-import "vendor:glfw"
 
 render_tokens :: proc(state: ^State) {
 	camera := state.camera

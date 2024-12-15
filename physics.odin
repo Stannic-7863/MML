@@ -3,7 +3,6 @@ package main
 import "core:math/linalg"
 import "core:math/rand"
 import "core:slice"
-import im "imgui"
 
 handle_physics :: proc(state: ^State) {
 	physics := state.config.physics
@@ -15,7 +14,7 @@ handle_physics :: proc(state: ^State) {
 	mouse.hovered_token = nil
 	token_count := cast(i32)len(state.tokens)
 
-	for &parent_token, parent_token_index in state.tokens {
+	for &parent_token in state.tokens {
 		apply_verlet(&parent_token, physics.scale_factor, physics.damping_factor)
 
 		for &child_token, child_token_index in parent_token.childs {
@@ -55,7 +54,7 @@ handle_physics :: proc(state: ^State) {
 				if sibling_dist < physics.sibling_min_distance + child_token.size {
 					sibling_force: [2]f32
 					dist_scaler := physics.min_distance - sibling_dist
-					sibling_force = dir * dist_scaler * physics.sibling_repulsive_force
+					sibling_force = sibling_dir * dist_scaler * physics.sibling_repulsive_force
 					child_token.force += sibling_force
 					sibling.force -= sibling_force
 				}
@@ -94,16 +93,13 @@ handle_physics :: proc(state: ^State) {
 		// whonky stuff due to rendering 
 		// the particles are in screen space by default cuz of how my code works rn 
 		// (probably)
-		if linalg.distance(
-			   get_screen_to_world(parent_token.pos, state.camera),
-			   (state.mouse.pos),
-		   ) <
-		   parent_token.size * state.camera.zoom {
-			state.mouse.hovered_token = &parent_token
+		if linalg.distance(get_screen_to_world(parent_token.pos, camera^), (state.mouse.pos)) <
+		   parent_token.size * camera.zoom {
+			mouse.hovered_token = &parent_token
 		}
 
 	}
-	for &sort_crit, sort_crit_index in state.tokens_sort_crit {
+	for &sort_crit in state.tokens_sort_crit {
 		sort_crit.hash = get_hash_key(
 			get_cell_coords(state.tokens[sort_crit.index].pos, physics.cell_size),
 			token_count,

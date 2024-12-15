@@ -1,0 +1,48 @@
+[ROOT] { /}
+[CENTER] { You can write in these brackets /} {ofc you can also have multiple of these/}
+[start] { or just put specify a path using quoted strings outside these/}
+
+[STYLE] { /}
+[personal] { /}
+[develop] { /}
+
+[KEYWORDS] {/}
+[print] {/}
+[case letters] {/}
+	[upper] {/}
+	[lower] {/}
+[lines] {/}
+	[organised] {/}
+	[style] {/}
+	[connect] {/}
+	[for each] {/}
+
+
+[USE] {/}
+[links] {/}
+[colors] {/}
+[emphasis] {/}
+[images] {/}
+[codes] {/}
+[dimension] {/}
+
+[CLARITY] {Some inline content/} "clarity.md"  
+[heirarchy] {/}
+[order] {/}
+[outline] {/}
+
+<> 
+
+[ROOT] ([CENTER] [STYLE] [KEYWORDS] [USE] [CLARITY])
+
+[CENTER] ([start])
+
+[STYLE] ([personal] [develop])
+
+[KEYWORDS] ([print] [case letters] [lines])
+[lines] ([for each] [connect] [style] [organised])
+[case letters] ([upper] [lower])
+
+[USE] ([links] [colors] [emphasis] [images] [codes] [dimension] )
+
+[CLARITY] ([outline] [order] [heirarchy])

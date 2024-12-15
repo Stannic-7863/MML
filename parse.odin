@@ -1,7 +1,6 @@
 package main
 
 import "core:fmt"
-import "core:math/rand"
 import "core:os/os2"
 
 
@@ -24,6 +23,19 @@ Parser_Connection_Token :: struct {
 	child:  [dynamic]string,
 }
 
+parse_mml_from_file :: proc(path: string) -> (mml_file: string, tokens: [dynamic]Token, ok: bool) {
+
+	file, err := os2.read_entire_file_from_path(path, context.allocator)
+
+	if err != nil {
+		delete(file)
+		return "", nil, false
+	}
+
+	tokens = parse_mml(cast(string)file)
+
+	return cast(string)file, tokens, true
+}
 
 parse_mml :: proc(text: string) -> [dynamic]Token {
 	parser_tokens: [dynamic]Parser_Token
@@ -146,7 +158,7 @@ parse_mml :: proc(text: string) -> [dynamic]Token {
 					t.childs = make([dynamic]^Token)
 					t.associated_files = make([dynamic]Associated_File)
 					t.content_blocks = make([dynamic]string)
-					i := append(&tokens, t)
+					append(&tokens, t)
 					current_token = &tokens[len(tokens) - 1]
 				case .Inline_Content:
 					append(&current_token.content_blocks, p_t.value)

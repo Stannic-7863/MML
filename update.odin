@@ -2,7 +2,6 @@ package main
 
 import "core:time"
 import im "imgui"
-import glfw "vendor:glfw"
 
 handle_tokens :: proc(state: ^State) {
 	handle_physics(state)

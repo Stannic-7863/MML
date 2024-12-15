@@ -17,6 +17,15 @@ new_state :: proc() -> State {
 
 delete_state :: proc(state: State) {
 	for t in state.tokens do delete_token(t)
+	delete(state.mml_string)
+	delete(state.tokens)
+	delete(state.tokens_sort_crit)
+	delete(state.token_index_map)
+}
+
+clear_state_token_data :: proc(state: ^State) {
+	for t in state.tokens do delete_token(t)
+	delete(state.mml_string)
 	delete(state.tokens)
 	delete(state.tokens_sort_crit)
 	delete(state.token_index_map)

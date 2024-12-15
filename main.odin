@@ -1,12 +1,11 @@
 package main
 
 import "core:fmt"
-import "core:math/linalg"
-import "core:math/rand"
 import "core:mem"
 import im "imgui"
 import im_glfw "imgui/imgui_impl_glfw"
 import im_gl "imgui/imgui_impl_opengl3"
+import nfd "nfd"
 import gl "vendor:OpenGL"
 import "vendor:glfw"
 
@@ -19,73 +18,9 @@ PRINT_VERBOSE :: proc(arg: ..any) {
 	fmt.printf("\n")
 }
 
-TEST_1 :: `
-		// tokens defined here
-		[ROOT] { /}
-		[CENTER] { You can write in these brackets /} {ofc you can also have multiple of these/}
-		[start] { or just put specify a path using quoted strings outside these/}
-
-		[STYLE] { /}
-		[personal] { /}
-		[develop] { /}
-
-		[KEYWORDS] {/}
-		[print] {/}
-		[case letters] {/}
-			[upper] {/}
-			[lower] {/}
-		[lines] {/}
-			[organised] {/}
-			[style] {/}
-			[connect] {/}
-			[for each] {/}
-
-
-		[USE] {/}
-		[links] {/}
-		[colors] {/}
-		[emphasis] {/}
-		[images] {/}
-		[codes] {/}
-		[dimension] {/}
-
-		[CLARITY] {Some inline content/} "clarity.md"  
-		[heirarchy] {/}
-		[order] {/}
-		[outline] {/}
-		
-		<> // connection phase here
-		
-		[ROOT] ([CENTER] [STYLE] [KEYWORDS] [USE] [CLARITY])
-
-		[CENTER] ([start])
-		
-		[STYLE] ([personal] [develop])
-
-		[KEYWORDS] ([print] [case letters] [lines])
-		[lines] ([for each] [connect] [style] [organised])
-		[case letters] ([upper] [lower])
-
-		[USE] ([links] [colors] [emphasis] [images] [codes] [dimension] )
-
-		[CLARITY] ([outline] [order] [heirarchy])
-`
-
-
-TEST_2 :: `
-
-	[TOKEN 1] {inline content 1/} {inline content 2/}
-	[TOKEN 2] {{ inside inline block Works?} {{{{[][][]{{]}}}}}}}}}}{{}}}}}{}{}{}{}{}{{{}}}}}}{{{}}}} /} "hm.md"
-	[TOKEN 3] { /}
-
-	<>
-
-	[TOKEN 1] ([TOKEN 2] [TOKEN 3])
-`
-
-
 main :: proc() {
 	when ODIN_DEBUG {
+
 		track: mem.Tracking_Allocator
 		mem.tracking_allocator_init(&track, context.allocator)
 		context.allocator = mem.tracking_allocator(&track)
@@ -110,6 +45,8 @@ main :: proc() {
 }
 
 run :: proc() {
+	nfd.Init()
+	defer nfd.Quit()
 
 	window := init_window(1000, 1000, "MML VIEWER")
 	defer close_window(window)
@@ -126,11 +63,6 @@ run :: proc() {
 	set_style_everforest()
 
 	state: State = new_state()
-	state.tokens = parse_mml(TEST_1)
-
-	for t, index in state.tokens {
-		append(&state.tokens_sort_crit, Sort_Criteria{index = cast(i32)index})
-	}
 
 	for (!glfw.WindowShouldClose(window)) {
 
@@ -138,8 +70,8 @@ run :: proc() {
 		state.window.size = get_window_size(window)
 
 		glfw.PollEvents()
-
 		begin()
+		main_menu(&state)
 		main_window(&state)
 		end(window)
 	}
@@ -156,6 +88,7 @@ main_window :: proc(state: ^State) {
 	im.SetWindowPos(0)
 	im.SetWindowSize(im.GetIO().DisplaySize)
 
+
 	graph_view(state)
 
 	im.SameLine()
@@ -165,6 +98,52 @@ main_window :: proc(state: ^State) {
 	im.End()
 }
 
+
+main_menu :: proc(state: ^State) {
+	if (im.BeginMainMenuBar()) {
+		if (im.BeginMenu("File")) {
+			if (im.MenuItem("Open", "ctrl + o")) {
+
+				path: cstring
+				filters := [1]nfd.Filter_Item{{"Mind Map Lang", "mml"}}
+				args := nfd.Open_Dialog_Args {
+					filter_list  = raw_data(filters[:]),
+					filter_count = len(filters),
+				}
+
+				result := nfd.OpenDialogU8_With(&path, &args)
+				switch result {
+				case .Okay:
+					{
+						mml_str, tokens, ok := parse_mml_from_file(cast(string)path)
+						if ok {
+							clear_state_token_data(state)
+							state.tokens = make([dynamic]Token)
+							state.tokens_sort_crit = make([dynamic]Sort_Criteria)
+							state.token_index_map = make(map[i32]i32)
+							state.mml_string = mml_str
+							state.tokens = tokens
+							for i in 0 ..< len(state.tokens) {
+								append(&state.tokens_sort_crit, Sort_Criteria{index = cast(i32)i})
+							}
+						}
+						nfd.FreePathU8(path)
+					}
+				case .Cancel:
+				case .Error:
+				}
+			}
+			if (im.MenuItem("Open Recent")) {
+			}
+			if (im.MenuItem("Save", "ctrl + s")) {
+			}
+			if im.MenuItem("Save As") {
+			}
+			im.EndMenu()
+		}
+		im.EndMainMenuBar()
+	}
+}
 graph_view :: proc(state: ^State) {
 	im.BeginChild("Graph View", {}, {.FrameStyle, .ResizeX}, {.NoScrollWithMouse, .NoScrollbar})
 	handle_tokens(state)
