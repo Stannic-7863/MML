@@ -2,31 +2,29 @@ package main
 
 import "core:time"
 
+// hold data to any associated file, loaded when parsing mml
 Associated_File :: struct {
-	path:    string,
-	content: []u8,
+	path:           string,
+	backing_buffer: [dynamic]byte,
+}
+
+Tab :: union {
+	string,
+	^Associated_File,
 }
 
 Token :: struct {
-	name:             string,
-	rank:             int,
+	size:             f32,
+	pos:              [2]f32,
+	force:            [2]f32,
+	old_pos:          [2]f32,
+	color:            [4]f32,
 	child_count:      int,
+	name:             string,
+	tabs:             [dynamic]Tab,
 	childs:           [dynamic]^Token,
-	content_blocks:   [dynamic]string,
+	inline_contents:  [dynamic]string,
 	associated_files: [dynamic]Associated_File,
-	to_render:        union {
-		string,
-		Associated_File,
-	},
-	using physics:    struct {
-		size:    f32,
-		pos:     [2]f32,
-		force:   [2]f32,
-		old_pos: [2]f32,
-	},
-	using render:     struct {
-		color: [4]f32,
-	},
 }
 
 Config :: struct {
@@ -70,24 +68,23 @@ Mouse :: struct {
 	clicked_time:  time.Time,
 }
 
-
 Sort_Criteria :: struct {
 	index: i32,
 	hash:  i32,
 }
 
+Mml :: struct {
+	file:      Associated_File,
+	is_loaded: bool,
+}
 
 State :: struct {
-	mml_string:       string,
-	config:           Config,
-	camera:           Camera,
-	mouse:            Mouse,
-	just_sorted:      bool,
-	token_index_map:  map[i32]i32,
-	tokens:           [dynamic]Token,
-	tokens_sort_crit: [dynamic]Sort_Criteria,
-	window:           struct {
-		size:          [2]f32,
-		window_handle: rawptr,
-	},
+	mml:         Mml,
+	just_sorted: bool,
+	mouse:       Mouse,
+	config:      Config,
+	camera:      Camera,
+	look_up:     map[i32]i32,
+	tokens:      [dynamic]Token,
+	sort_crit:   [dynamic]Sort_Criteria,
 }

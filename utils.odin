@@ -1,40 +1,81 @@
 package main
 
 import "core:math/linalg"
-import "imgui"
-import gl "vendor:OpenGL"
-import glfw "vendor:glfw"
+import "core:os/os2"
+import im "imgui"
 
 new_state :: proc() -> State {
+	INFO("New State")
 	return {
 		config = get_default_config(),
 		tokens = make([dynamic]Token),
-		tokens_sort_crit = make([dynamic]Sort_Criteria),
-		token_index_map = make(map[i32]i32),
+		sort_crit = make([dynamic]Sort_Criteria),
+		look_up = make(map[i32]i32),
 		camera = {zoom = 1},
 	}
 }
 
-delete_state :: proc(state: State) {
-	for t in state.tokens do delete_token(t)
-	delete(state.mml_string)
-	delete(state.tokens)
-	delete(state.tokens_sort_crit)
-	delete(state.token_index_map)
+reload_state :: proc(state: ^State) {
+	delete(state.mml.file.backing_buffer)
+	mml_str, tokens, ok := parse_mml_from_file(state.mml.file.path)
+	if ok {
+		state.mml.file.backing_buffer = mml_str
+		delete_state_token_data(state^)
+		state.look_up = make(map[i32]i32)
+		state.tokens = make([dynamic]Token)
+		state.sort_crit = make([dynamic]Sort_Criteria)
+		state.tokens = tokens
+		state.mouse.hovered_token = nil
+		state.mouse.dragged_token = nil
+		state.mouse.clicked_token = nil
+		for i in 0 ..< len(state.tokens) {
+			append(&state.sort_crit, Sort_Criteria{index = cast(i32)i})
+		}
+		INFO("Reloaded State")
+	}
 }
 
-clear_state_token_data :: proc(state: ^State) {
+reload_tokens :: proc(state: ^State) {
+	tokens := parse_mml(string(state.mml.file.backing_buffer[:]))
+	delete_state_token_data(state^)
+	state.look_up = make(map[i32]i32)
+	state.tokens = make([dynamic]Token)
+	state.sort_crit = make([dynamic]Sort_Criteria)
+	state.tokens = tokens
+	state.mouse.hovered_token = nil
+	state.mouse.dragged_token = nil
+	state.mouse.clicked_token = nil
+	for i in 0 ..< len(state.tokens) {
+		append(&state.sort_crit, Sort_Criteria{index = cast(i32)i})
+	}
+	INFO("Reloaded Tokens")
+}
+
+delete_state :: proc(state: State) {
+	if state.mml.is_loaded {
+		delete(state.mml.file.path)
+	}
+	delete(state.mml.file.backing_buffer)
+	delete_state_token_data(state)
+	INFO("Delete State")
+}
+
+delete_state_token_data :: proc(state: State) {
+	INFO("Delete token data")
 	for t in state.tokens do delete_token(t)
-	delete(state.mml_string)
 	delete(state.tokens)
-	delete(state.tokens_sort_crit)
-	delete(state.token_index_map)
+	delete(state.sort_crit)
+	delete(state.look_up)
 }
 
 delete_token :: proc(t: Token) {
+	for f in t.associated_files {
+		delete(f.backing_buffer)
+	}
+	delete(t.tabs)
 	delete(t.childs)
 	delete(t.associated_files)
-	delete(t.content_blocks)
+	delete(t.inline_contents)
 }
 
 get_default_config :: proc() -> Config {
@@ -75,73 +116,15 @@ apply_verlet :: proc(t: ^Token, scale_factor: f32, damp_factor: f32 = 0.9) {
 	t.pos = t.old_pos + velocity * damp_factor
 }
 
-token_sort_proc :: proc(i, j: Sort_Criteria) -> bool {return i.hash < j.hash}
-
-get_window_size :: proc(window: glfw.WindowHandle) -> [2]f32 {
-	width, height := glfw.GetWindowSize(window)
-	return {cast(f32)width, cast(f32)height}
+token_sort_proc :: proc(i, j: Sort_Criteria) -> bool {
+	return i.hash < j.hash
 }
 
-get_color :: proc(color: [4]f32) -> u32 {
-	return imgui.ColorConvertFloat4ToU32(color)
-}
-
-get_token_size :: proc(token: Token) -> f32 {
-	return (linalg.sqrt(cast(f32)token.child_count + 1)) * 5
-}
-
-get_cell_coords :: proc(pos: [2]f32, cell_size: f32) -> [2]i32 {
-	return {cast(i32)(pos.x / cell_size), cast(i32)(pos.y / cell_size)}
-}
-
-get_screen_to_world :: proc(v: [2]f32, camera: Camera) -> [2]f32 {
-	return (v * camera.zoom) + camera.target
-}
-
-get_hash_key :: proc(pos: [2]i32, number_of_particles: i32) -> i32 {
-	x_hash := pos.x * 15823
-	y_hash := pos.y * 9737333
-	return (x_hash + y_hash) % number_of_particles
-}
-
-get_total_childs :: proc(t: Token) -> int {
-	child: int = len(t.childs)
-	for c in t.childs {
-		child += get_total_childs(c^)
+write_to_associated_file :: proc(path: string, content: []byte) {
+	err := os2.write_entire_file(path, content)
+	if err != nil {
+		INFO_F("Error saving file.\nFile path : %s\nError : %v", path, err)
+		return
 	}
-	return child
-}
-
-init_window :: proc(
-	width: i32 = 800,
-	height: i32 = 640,
-	name: cstring = "",
-	GL_MAJOR: i32 = 4,
-	GL_MINOR: i32 = 6,
-) -> glfw.WindowHandle {
-
-	glfw.Init()
-	glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, GL_MAJOR)
-	glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, GL_MINOR)
-	glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-
-	window := glfw.CreateWindow(width, height, name, nil, nil)
-
-	glfw.MakeContextCurrent(window)
-	glfw.SetFramebufferSizeCallback(
-		window,
-		proc "c" (window: glfw.WindowHandle, width, height: i32) {
-			gl.Viewport(0, 0, width, height)
-		},
-	)
-
-	gl.load_up_to(cast(int)GL_MAJOR, cast(int)GL_MINOR, glfw.gl_set_proc_address)
-	gl.Viewport(0, 0, width, height)
-
-	return window
-}
-
-close_window :: proc(window: glfw.WindowHandle) {
-	glfw.DestroyWindow(window)
-	glfw.Terminate()
+	INFO_F("File Saved at path \"%s\"", path)
 }

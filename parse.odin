@@ -3,7 +3,6 @@ package main
 import "core:fmt"
 import "core:os/os2"
 
-
 @(private = "file")
 Parser_Token_Type :: enum {
 	File_Path,
@@ -23,25 +22,39 @@ Parser_Connection_Token :: struct {
 	child:  [dynamic]string,
 }
 
-parse_mml_from_file :: proc(path: string) -> (mml_file: string, tokens: [dynamic]Token, ok: bool) {
-
-	file, err := os2.read_entire_file_from_path(path, context.allocator)
+parse_mml_from_file :: proc(
+	path: string,
+) -> (
+	mml_file: [dynamic]byte,
+	tokens: [dynamic]Token,
+	ok: bool,
+) {
+	file, err := os2.read_entire_file_from_path(path, context.temp_allocator)
 
 	if err != nil {
 		delete(file)
-		return "", nil, false
+		ERROR_F("Error opening mml file.\nProvided Path : %s\nError : %v", path, err)
+		return {}, nil, false
 	}
 
-	tokens = parse_mml(cast(string)file)
+	INFO_F("Loaded mml file from path \"%s\"", path)
+	backing_buff := make([dynamic]byte)
 
-	return cast(string)file, tokens, true
+	for b in file {
+		append(&backing_buff, b)
+	}
+
+	tokens = parse_mml(cast(string)backing_buff[:])
+
+	return backing_buff, tokens, true
 }
 
-parse_mml :: proc(text: string) -> [dynamic]Token {
+parse_mml :: proc(mml_str: string) -> [dynamic]Token {
 	parser_tokens: [dynamic]Parser_Token
 	defer delete(parser_tokens)
 	parser_connection_tokens: [dynamic]Parser_Connection_Token
 	defer delete(parser_connection_tokens)
+
 	defer for e in parser_connection_tokens {
 		delete(e.child)
 	}
@@ -53,8 +66,8 @@ parse_mml :: proc(text: string) -> [dynamic]Token {
 	parser_token_start_index: int = 0
 	parser_loop_index: int
 
-	parser_loop: for parser_loop_index < len(text) {
-		switch text[parser_loop_index] {
+	parser_loop: for parser_loop_index < len(mml_str) {
+		switch mml_str[parser_loop_index] {
 		case '[':
 			if is_parsing_inline_content {
 				break
@@ -67,7 +80,7 @@ parse_mml :: proc(text: string) -> [dynamic]Token {
 			}
 			t: Parser_Token
 			t.type = .Identifier
-			t.value = text[parser_token_start_index:parser_loop_index]
+			t.value = mml_str[parser_token_start_index:parser_loop_index]
 			append(&parser_tokens, t)
 			is_parsing_identifier = false
 
@@ -77,16 +90,16 @@ parse_mml :: proc(text: string) -> [dynamic]Token {
 				is_parsing_inline_content = true
 			}
 		case '}':
-			if text[parser_loop_index - 1] != '/' {
+			if mml_str[parser_loop_index - 1] != '/' {
 				break
 			}
 			t: Parser_Token
 			t.type = .Inline_Content
-			t.value = text[parser_token_start_index:parser_loop_index - 1]
+			t.value = mml_str[parser_token_start_index:parser_loop_index - 1]
 			append(&parser_tokens, t)
 			is_parsing_inline_content = false
 		case '>':
-			if !is_parsing_inline_content && text[parser_loop_index - 1] == '<' {
+			if !is_parsing_inline_content && mml_str[parser_loop_index - 1] == '<' {
 				break parser_loop
 			}
 		case '"':
@@ -100,7 +113,7 @@ parse_mml :: proc(text: string) -> [dynamic]Token {
 					is_parsing_filepath = false
 					t: Parser_Token
 					t.type = .File_Path
-					t.value = text[parser_token_start_index:parser_loop_index]
+					t.value = mml_str[parser_token_start_index:parser_loop_index]
 					append(&parser_tokens, t)
 				}
 			}
@@ -111,20 +124,20 @@ parse_mml :: proc(text: string) -> [dynamic]Token {
 	add_child_mode: bool
 	current_connection_token: ^Parser_Connection_Token
 
-	for parser_loop_index < len(text) {
-		switch text[parser_loop_index] {
+	for parser_loop_index < len(mml_str) {
+		switch mml_str[parser_loop_index] {
 		case '[':
 			parser_token_start_index = parser_loop_index + 1
 		case ']':
 			if add_child_mode {
 				append(
 					&current_connection_token.child,
-					text[parser_token_start_index:parser_loop_index],
+					mml_str[parser_token_start_index:parser_loop_index],
 				)
 				break
 			}
 			t: Parser_Connection_Token
-			t.parent = text[parser_token_start_index:parser_loop_index]
+			t.parent = mml_str[parser_token_start_index:parser_loop_index]
 			append(&parser_connection_tokens, t)
 			current_connection_token = &parser_connection_tokens[len(parser_connection_tokens) - 1]
 		case '(':
@@ -134,8 +147,6 @@ parse_mml :: proc(text: string) -> [dynamic]Token {
 		}
 		parser_loop_index += 1
 	}
-
-	// PRINT_VERBOSE(parser_connection_tokens)
 
 	append(&parser_tokens, Parser_Token{type = .Identifier})
 
@@ -157,20 +168,26 @@ parse_mml :: proc(text: string) -> [dynamic]Token {
 					t.name = p_t.value
 					t.childs = make([dynamic]^Token)
 					t.associated_files = make([dynamic]Associated_File)
-					t.content_blocks = make([dynamic]string)
+					t.inline_contents = make([dynamic]string)
+					t.tabs = make([dynamic]Tab)
+
 					append(&tokens, t)
 					current_token = &tokens[len(tokens) - 1]
+
 				case .Inline_Content:
-					append(&current_token.content_blocks, p_t.value)
+					append(&current_token.inline_contents, p_t.value)
+
 				case .File_Path:
-					content, err := os2.read_entire_file_from_path(p_t.value, os2.heap_allocator())
+					data, err := os2.read_entire_file_from_path(p_t.value, context.temp_allocator)
 					if err != nil {
-						fmt.println(err)
+						ERROR_F("Error : %v", err)
 						break
 					}
+					backing_buffer := make([dynamic]byte, len(data))
+					copy(backing_buffer[:], data)
 					append(
 						&current_token.associated_files,
-						Associated_File{path = p_t.value, content = content},
+						Associated_File{path = p_t.value, backing_buffer = backing_buffer},
 					)
 				}
 			}

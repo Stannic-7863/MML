@@ -4,7 +4,7 @@ import "core:math/linalg"
 import "core:math/rand"
 import "core:slice"
 
-handle_physics :: proc(state: ^State) {
+handle_token_physics :: proc(state: ^State) {
 	physics := state.config.physics
 	render := state.config.render
 	camera := &state.camera
@@ -64,15 +64,14 @@ handle_physics :: proc(state: ^State) {
 
 		hash := get_hash_key(get_cell_coords(parent_token.pos, physics.cell_size), token_count)
 
-		sort_crit_lookup_index := state.token_index_map[hash]
+		sort_crit_lookup_index := state.look_up[hash]
 
 		for i: i32 = sort_crit_lookup_index; i < token_count; i += 1 {
-			if state.tokens_sort_crit[sort_crit_lookup_index].hash !=
-			   state.tokens_sort_crit[i].hash {
+			if state.sort_crit[sort_crit_lookup_index].hash != state.sort_crit[i].hash {
 				break
 			}
 
-			neighbor_token := &state.tokens[state.tokens_sort_crit[i].index]
+			neighbor_token := &state.tokens[state.sort_crit[i].index]
 
 			neighbor_token_dist := linalg.distance(neighbor_token.pos, parent_token.pos)
 			neighbor_token_diff := parent_token.pos - neighbor_token.pos
@@ -99,15 +98,16 @@ handle_physics :: proc(state: ^State) {
 		}
 
 	}
-	for &sort_crit in state.tokens_sort_crit {
+
+	for &sort_crit in state.sort_crit {
 		sort_crit.hash = get_hash_key(
 			get_cell_coords(state.tokens[sort_crit.index].pos, physics.cell_size),
 			token_count,
 		)
 	}
 
-	if !(slice.is_sorted_by(state.tokens_sort_crit[:], token_sort_proc)) {
-		slice.sort_by(state.tokens_sort_crit[:], token_sort_proc)
+	if !(slice.is_sorted_by(state.sort_crit[:], token_sort_proc)) {
+		slice.sort_by(state.sort_crit[:], token_sort_proc)
 		state.just_sorted = true
 	}
 }
