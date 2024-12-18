@@ -1,4 +1,4 @@
-package main
+package mml
 
 import "core:math/linalg"
 import "core:math/rand"
@@ -15,8 +15,6 @@ handle_token_physics :: proc(state: ^State) {
 	token_count := cast(i32)len(state.tokens)
 
 	for &parent_token in state.tokens {
-		apply_verlet(&parent_token, physics.scale_factor, physics.damping_factor)
-
 		for &child_token, child_token_index in parent_token.childs {
 			dist := linalg.distance(child_token.pos, parent_token.pos)
 			if dist == 0 {
@@ -34,9 +32,9 @@ handle_token_physics :: proc(state: ^State) {
 
 			force: [2]f32
 			if dist < dist_min {
-				force = dir * (dist_min - dist) * physics.repulsive_force
+				force = dir * (dist_min - dist + cast(f32)child_token.child_count) * physics.repulsive_force
 			} else if dist > dist_max {
-				force = -dir * (dist - dist_max) * physics.attraction_force
+				force = -dir * (dist - dist_max + cast(f32)child_token.child_count) * physics.attraction_force
 			}
 
 			child_token.force += force
@@ -79,9 +77,7 @@ handle_token_physics :: proc(state: ^State) {
 			neighbor_token_force: [2]f32
 			if neighbor_token_dist < physics.neighbour_min_distance {
 				neighbor_token_force =
-					neighbor_token_dir *
-					(physics.neighbour_min_distance - neighbor_token_dist) *
-					physics.neighbour_repulsive_force
+					neighbor_token_dir * (physics.neighbour_min_distance - neighbor_token_dist) * physics.neighbour_repulsive_force
 			}
 			parent_token.force += neighbor_token_force
 			neighbor_token.force -= neighbor_token_force
@@ -92,18 +88,14 @@ handle_token_physics :: proc(state: ^State) {
 		// whonky stuff due to rendering 
 		// the particles are in screen space by default cuz of how my code works rn 
 		// (probably)
-		if linalg.distance(get_screen_to_world(parent_token.pos, camera^), (state.mouse.pos)) <
-		   parent_token.size * camera.zoom {
+		if linalg.distance(get_screen_to_world(parent_token.pos, camera^), (state.mouse.pos)) < parent_token.size * camera.zoom {
 			mouse.hovered_token = &parent_token
 		}
-
+		apply_verlet(&parent_token, physics.scale_factor, physics.damping_factor)
 	}
 
 	for &sort_crit in state.sort_crit {
-		sort_crit.hash = get_hash_key(
-			get_cell_coords(state.tokens[sort_crit.index].pos, physics.cell_size),
-			token_count,
-		)
+		sort_crit.hash = get_hash_key(get_cell_coords(state.tokens[sort_crit.index].pos, physics.cell_size), token_count)
 	}
 
 	if !(slice.is_sorted_by(state.sort_crit[:], token_sort_proc)) {

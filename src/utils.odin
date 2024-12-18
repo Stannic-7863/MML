@@ -1,4 +1,4 @@
-package main
+package mml
 
 import "core:math/linalg"
 import "core:os/os2"
@@ -32,6 +32,7 @@ reload_state :: proc(state: ^State) {
 			append(&state.sort_crit, Sort_Criteria{index = cast(i32)i})
 		}
 		INFO("Reloaded State")
+		radial_spread(&state.tokens[0], state.config)
 	}
 }
 
@@ -81,26 +82,26 @@ delete_token :: proc(t: Token) {
 get_default_config :: proc() -> Config {
 	return Config {
 		physics = {
-			cell_size = 150,
-			damping_factor = 0.93,
-			scale_factor = 60.0,
-			min_distance = 150,
-			max_distance = 190,
-			sibling_min_distance = 40,
-			sibling_repulsive_force = 2,
-			neighbour_min_distance = 40,
-			neighbour_repulsive_force = 2,
-			global_gravity = 1,
-			repulsive_force = 2,
-			attraction_force = 1,
+			cell_size = 120,
+			damping_factor = 0.90,
+			scale_factor = 50.0,
+			min_distance = 100,
+			max_distance = 300,
+			sibling_min_distance = 60,
+			sibling_repulsive_force = 0.5,
+			neighbour_min_distance = 80,
+			neighbour_repulsive_force = 0.5,
+			global_gravity = 0.5,
+			repulsive_force = 1.5,
+			attraction_force = 1.2,
 			global_center = {0, 0},
 		},
 		render = {
-			line_thickness = 1,
-			color_dragged = [4]f32{40, 50, 60, 255} / 255,
-			color_default = [4]f32{0.563, 0.379, 0.327, 1.0},
-			color_hovered = [4]f32{158, 160, 211, 255} / 255,
-			color_selected = [4]f32{0.522, 0.212, 0.228, 1.0},
+			line_thickness = 1.5,
+			color_dragged = [4]f32{0.457, 0.296, 0.235, 1.0},
+			color_default = [4]f32{0.6, 0.4, 0.3, 1.0},
+			color_hovered = [4]f32{0.62, 0.63, 0.83, 1.0},
+			color_selected = [4]f32{0.7, 0.2, 0.25, 1.0},
 			color_font = [4]f32{1.0, 1.0, 1.0, 1.0},
 		},
 	}
@@ -127,4 +128,27 @@ write_to_associated_file :: proc(path: string, content: []byte) {
 		return
 	}
 	INFO_F("File Saved at path \"%s\"", path)
+}
+
+radial_spread :: proc(token: ^Token, config: Config, total_spread: f32 = linalg.PI * 2, initial: f32 = 0) {
+
+	dist := config.physics.max_distance - config.physics.min_distance
+	dist /= 2
+
+	spread := total_spread / cast(f32)len(token.childs)
+
+	initial: f32 = 0
+
+	for &c, index in token.childs {
+
+		x := linalg.cos(initial) * dist
+		y := linalg.sin(initial) * dist
+
+		c.pos = {x, y} + token.pos
+		c.old_pos = c.pos
+
+		initial += spread
+
+		radial_spread(c, config, linalg.PI / 3, initial - linalg.PI / 3)
+	}
 }

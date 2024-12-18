@@ -3,18 +3,12 @@ package main
 import "core:log"
 import "core:mem"
 
-INFO :: log.info
-ERROR :: log.error
-INFO_F :: log.infof
-ERROR_F :: log.errorf
+import mml "src"
 
 main :: proc() {
 
 	// logger setup 
-	context.logger = log.create_console_logger(
-		log.Level.Debug,
-		log.Options{.Level, .Procedure, .Line, .Terminal_Color},
-	)
+	context.logger = log.create_console_logger(log.Level.Debug, log.Options{.Level, .Procedure, .Line, .Terminal_Color})
 	defer log.destroy_console_logger(context.logger)
 
 	// to keep track of mem leaks 
@@ -25,15 +19,15 @@ main :: proc() {
 
 		defer {
 			if len(track.allocation_map) > 0 {
-				ERROR_F("=== %v allocations not freed: ===\n", len(track.allocation_map))
+				mml.ERROR_F("=== %v allocations not freed: ===\n", len(track.allocation_map))
 				for _, entry in track.allocation_map {
-					ERROR_F("- %v bytes @ %v\n", entry.size, entry.location)
+					mml.ERROR_F("- %v bytes @ %v\n", entry.size, entry.location)
 				}
 			}
 			if len(track.bad_free_array) > 0 {
 				ERROR_F("=== %v incorrect frees: ===\n", len(track.bad_free_array))
 				for entry in track.bad_free_array {
-					ERROR_F("- %p @ %v\n", entry.memory, entry.location)
+					mml.ERROR_F("- %p @ %v\n", entry.memory, entry.location)
 				}
 			}
 			mem.tracking_allocator_destroy(&track)
@@ -41,5 +35,5 @@ main :: proc() {
 	}
 
 	// main program
-	run()
+	mml.run()
 }

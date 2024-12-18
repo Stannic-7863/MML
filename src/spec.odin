@@ -1,4 +1,4 @@
-package main
+package mml
 
 import "core:time"
 

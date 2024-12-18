@@ -1,4 +1,4 @@
-package main
+package mml
 
 import "core:fmt"
 import "core:math/linalg"
@@ -26,9 +26,8 @@ render_tokens :: proc(state: ^State) {
 
 	// draws the lines between each token 
 
-	for t in state.tokens {
+	for &t in state.tokens {
 		for c in t.childs {
-
 			parent_pos := get_screen_to_world(t.pos, camera)
 			child_pos := get_screen_to_world(c.pos, camera)
 
@@ -62,7 +61,6 @@ render_tokens :: proc(state: ^State) {
 		}
 	}
 
-	// draws the tokens 
 	for token in state.tokens {
 		pos := get_screen_to_world(token.pos, camera)
 		size := token.size * camera.zoom
@@ -140,10 +138,7 @@ render_data_edit :: proc(state: ^State) {
 				im.SeparatorText(fmt.ctprint(v.path))
 
 				avail_space := im.GetContentRegionAvail()
-				button_size :=
-					im.CalcTextSize("Discard Commit").x +
-					2 * im.GetStyle().ItemSpacing.x +
-					2 * im.GetStyle().FramePadding.x * 2
+				button_size := im.CalcTextSize("Discard Commit").x + 2 * im.GetStyle().ItemSpacing.x + 2 * im.GetStyle().FramePadding.x * 2
 
 				im.SameLine(avail_space.x - button_size)
 
@@ -173,13 +168,7 @@ render_data_edit :: proc(state: ^State) {
 			}
 		case string:
 			if im.BeginTabItem(fmt.ctprintf("[ReadOnly] Inline Block %i", index), &is_open) {
-				im.InputTextMultiline(
-					"##hidden inline content view",
-					fmt.ctprint(v),
-					len(v),
-					{},
-					{.ReadOnly},
-				)
+				im.InputTextMultiline("##hidden inline content view", fmt.ctprint(v), len(v), {}, {.ReadOnly})
 				im.EndTabItem()
 			}
 		}
@@ -223,19 +212,9 @@ render_config_settings :: proc(config: ^Config) {
 			im.SliderFloat("Min Distance", &physics.min_distance, 0.0, 1000.0)
 			im.SliderFloat("Max Distance", &physics.max_distance, 0.0, 1000.0)
 			im.SliderFloat("Sibling Min Distance", &physics.sibling_min_distance, 0.0, 1000.0)
-			im.SliderFloat(
-				"Sibling Repulsion Force",
-				&physics.sibling_repulsive_force,
-				0.0,
-				1000.0,
-			)
+			im.SliderFloat("Sibling Repulsion Force", &physics.sibling_repulsive_force, 0.0, 1000.0)
 			im.SliderFloat("Neigbour Min Distance", &physics.neighbour_min_distance, 0.0, 1000.0)
-			im.SliderFloat(
-				"Neigbour Repulsion Force",
-				&physics.neighbour_repulsive_force,
-				0.0,
-				10.0,
-			)
+			im.SliderFloat("Neigbour Repulsion Force", &physics.neighbour_repulsive_force, 0.0, 10.0)
 			im.SliderFloat("Repulsion Force", &physics.repulsive_force, 0.0, 1000.0)
 			im.SliderFloat("Attraction Force", &physics.attraction_force, 0.0, 1000.0)
 			im.SliderFloat("Global Gravity", &physics.global_gravity, -10.0, 10.0)
@@ -254,10 +233,7 @@ render_mml_editor :: proc(state: ^State) {
 		}
 
 		avail_space := im.GetContentRegionAvail()
-		button_size :=
-			im.CalcTextSize("Discard Commit").x +
-			2 * im.GetStyle().ItemSpacing.x +
-			2 * im.GetStyle().FramePadding.x * 2
+		button_size := im.CalcTextSize("Discard Commit").x + 2 * im.GetStyle().ItemSpacing.x + 2 * im.GetStyle().FramePadding.x * 2
 
 		im.SameLine(avail_space.x - button_size)
 

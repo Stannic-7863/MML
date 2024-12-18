@@ -1,4 +1,4 @@
-package main
+package mml
 
 import "core:time"
 import im "imgui"
@@ -26,8 +26,7 @@ handle_token_grid :: proc(state: ^State) {
 					cast(i32)len(state.tokens),
 				)
 
-				if val, ok := state.look_up[token_old_hash];
-				   ok && val == cast(i32)sort_crit_index {
+				if val, ok := state.look_up[token_old_hash]; ok && val == cast(i32)sort_crit_index {
 					delete_key(&state.look_up, token_old_hash)
 				}
 
@@ -42,9 +41,11 @@ handle_token_events :: proc(state: ^State) {
 		return
 	}
 
-	wheel := im.GetIO().MouseWheel / 5
-	state.camera.zoom += wheel
-	state.camera.zoom = state.camera.zoom <= 0.1 ? 0.1 : state.camera.zoom
+
+	if im.GetIO().MouseWheel != 0 {
+		state.camera.zoom += im.GetIO().MouseWheel < 0 ? -0.2 : 0.2
+		state.camera.zoom = state.camera.zoom <= 0.1 ? 0.1 : state.camera.zoom
+	}
 
 	handle_camera_drag(state)
 
@@ -53,8 +54,7 @@ handle_token_events :: proc(state: ^State) {
 	}
 
 	if (im.IsMouseDown(.Left)) {
-		if time.since(state.mouse.clicked_time) > time.Millisecond * 300 &&
-		   state.mouse.hovered_token != nil {
+		if time.since(state.mouse.clicked_time) > time.Millisecond * 300 && state.mouse.hovered_token != nil {
 			state.mouse.dragged_token = state.mouse.hovered_token
 		}
 	}

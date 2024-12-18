@@ -8,6 +8,8 @@ TO-DO :
 - Tree view if file is folder. (folder hierarchy)
 - Add tabs for better editing 
 
-DONE : 
-Basic theming
-Editing works
+DONE :
+Added editing 
+Loading of files
+Theme
+UI layout (somewhat)

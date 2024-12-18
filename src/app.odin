@@ -1,4 +1,4 @@
-package main
+package mml
 
 import "core:strings"
 import "vendor:glfw"
@@ -34,6 +34,7 @@ run :: proc() {
 
 	state: State = new_state()
 
+
 	for (!glfw.WindowShouldClose(window)) {
 		free_all(context.temp_allocator)
 
@@ -50,11 +51,7 @@ run :: proc() {
 }
 
 main_window :: proc(state: ^State) {
-	im.Begin(
-		"Main window",
-		nil,
-		{.NoTitleBar, .NoCollapse, .NoResize, .NoMove, .MenuBar, .NoBringToFrontOnFocus},
-	)
+	im.Begin("Main window", nil, {.NoTitleBar, .NoCollapse, .NoResize, .NoMove, .MenuBar, .NoBringToFrontOnFocus})
 	im.SetWindowPos(0)
 	im.SetWindowSize(im.GetIO().DisplaySize)
 	graph_view(state)

@@ -1,48 +1,165 @@
 [ROOT] { /}
 [CENTER] { You can write in these brackets /} {ofc you can also have multiple of these/}
-[start] { or just put specify a path using quoted strings outside these/}
+[start] { or just specify a path using quoted strings outside these/} "index.md"
 
 [STYLE] { /}
-[personal] { /}
-[develop] { /}
+[personal] { Thoughts and musings/}
+[develop] { Code snippets, tips, and tricks/}
+	[refactor] { Improving existing code/}
+	[debug] { Troubleshooting and fixing errors/}
+	[optimize] { Performance improvements/}
+	[patterns] { Common design patterns/}
+		[creational] { Object creation patterns/}
+		[structural] { Structuring code effectively/}
+		[behavioral] { Managing object interactions/}
+[design] { Visual and functional design/}
+	[layout] { Arranging content on screen/}
+	[typography] { Font choices and styles/}
+	[colorscheme] { Theme and palette/}
 
 [KEYWORDS] {/}
-[print] {/}
-[case letters] {/}
-	[upper] {/}
-	[lower] {/}
-[lines] {/}
-	[organised] {/}
-	[style] {/}
-	[connect] {/}
-	[for each] {/}
-
+[print] { Output-related functions/}
+[case letters] { Uppercase and lowercase handling/}
+	[upper] { Transform to uppercase/}
+	[lower] { Transform to lowercase/}
+	[title] { Title-case transformations/}
+[lines] { Formatting lines of text/}
+	[organised] { Grouping similar lines/}
+	[style] { Consistent text styling/}
+	[connect] { Linking lines logically/}
+	[for each] { Iterating through lines/}
+	[split] { Dividing lines into parts/}
+	[merge] { Combining lines together/}
+	[align] { Aligning lines/}
+		[left] { Left alignment/}
+		[right] { Right alignment/}
+		[center] { Center alignment/}
+		[justify] { Full justification/}
 
 [USE] {/}
-[links] {/}
-[colors] {/}
-[emphasis] {/}
-[images] {/}
-[codes] {/}
-[dimension] {/}
+[links] { Hyperlinks and references/}
+	[internal] { Links within the document/}
+	[external] { Links to other websites/}
+	[anchor] { Jump to specific sections/}
+[colors] { Adding visual distinction/}
+	[background] { Setting background colors/}
+	[text] { Coloring text/}
+	[highlight] { Emphasizing important parts/}
+	[gradient] { Smooth color transitions/}
+[emphasis] { Making content stand out/}
+	[bold] { Bold text/}
+	[italic] { Italic text/}
+	[underline] { Underlined text/}
+	[strikethrough] { Crossed-out text/}
+[images] { Adding images/}
+	[inline] { Images within text/}
+	[background] { Background images/}
+	[thumbnail] { Small previews/}
+	[gallery] { Image collections/}
+[codes] { Code-related features/}
+	[syntax highlighting] { Colored code/}
+	[snippets] { Reusable code blocks/}
+	[inline code] { Code within text/}
+	[block code] { Larger code blocks/}
+[dimension] { Adjusting size/}
+	[width] { Set width/}
+	[height] { Set height/}
+	[scaling] { Resizing proportionally/}
+	[max size] { Maximum dimensions/}
+	[min size] { Minimum dimensions/}
 
-[CLARITY] {Some inline content/} "clarity.md"  
-[heirarchy] {/}
-[order] {/}
-[outline] {/}
+[CLARITY] { Some inline content/}
+[heirarchy] { Logical structure of content/}
+	[level 1] { Main sections/}
+	[level 2] { Subsections/}
+	[level 3] { Detailed content/}
+	[level 4] { Minor details/}
+[order] { Sequence and flow/}
+	[chronological] { Ordered by time/}
+	[priority] { Ordered by importance/}
+	[logical] { Ordered by relationships/}
+	[custom] { User-defined order/}
+[outline] { Summarized structure/}
+	[bullet points] { Key ideas/}
+	[numbered list] { Step-by-step guide/}
+	[checklist] { Tasks with checkboxes/}
+	[tree] { Hierarchical diagrams/}
+
+[INTERACTION] {/}
+[forms] { User input forms/}
+	[text field] { Single-line input/}
+	[text area] { Multi-line input/}
+	[dropdown] { Select from options/}
+	[checkbox] { On/off toggle/}
+	[radio button] { Select one of many/}
+	[submit button] { Confirm input/}
+[buttons] { Clickable actions/}
+	[primary] { Main action button/}
+	[secondary] { Supporting action button/}
+	[icon button] { Button with an icon/}
+	[toggle button] { Switch states/}
+[modals] { Popup dialogs/}
+	[alert] { Warning message/}
+	[confirmation] { Yes/No dialog/}
+	[settings] { Configurable options/}
+	[form modal] { Input forms in a popup/}
+[drag and drop] { Moving elements/}
+	[kanban] { Task board/}
+	[sortable list] { Rearrange items/}
+	[reorder grid] { Rearrange grid items/}
+
+[NAVIGATION] {/}
+[menu] { Menu navigation/}
+	[main menu] { Top-level options/}
+	[context menu] { Right-click options/}
+	[dropdown menu] { Expandable lists/}
+[tabs] { Switching between views/}
+	[horizontal tabs] { Tabs at the top/}
+	[vertical tabs] { Tabs on the side/}
+[breadcrumbs] { Path navigation/}
+	[root] { Home level/}
+	[category] { Current section/}
+	[subcategory] { Deeper levels/}
+[sidebar] { Navigation on the side/}
+	[collapsible] { Expand/collapse sections/}
+	[persistent] { Always visible/}
 
 <> 
 
-[ROOT] ([CENTER] [STYLE] [KEYWORDS] [USE] [CLARITY])
+[ROOT] ([CENTER] [STYLE] [KEYWORDS] [USE] [CLARITY] [INTERACTION] [NAVIGATION])
 
 [CENTER] ([start])
 
-[STYLE] ([personal] [develop])
+[STYLE] ([personal] [develop] [design])
+[develop] ([refactor] [debug] [optimize] [patterns])
+[patterns] ([creational] [structural] [behavioral])
 
 [KEYWORDS] ([print] [case letters] [lines])
-[lines] ([for each] [connect] [style] [organised])
-[case letters] ([upper] [lower])
+[case letters] ([upper] [lower] [title])
+[lines] ([for each] [connect] [style] [organised] [split] [merge] [align])
+[align] ([left] [right] [center] [justify])
 
-[USE] ([links] [colors] [emphasis] [images] [codes] [dimension] )
+[USE] ([links] [colors] [emphasis] [images] [codes] [dimension])
+[links] ([internal] [external] [anchor])
+[colors] ([background] [text] [highlight] [gradient])
+[images] ([inline] [background] [thumbnail] [gallery])
+[dimension] ([width] [height] [scaling] [max size] [min size])
 
-[CLARITY] ([outline] [order] [heirarchy])
+[CLARITY] ([heirarchy] [order] [outline])
+[heirarchy] ([level 1] [level 2] [level 3] [level 4])
+[order] ([chronological] [priority] [logical] [custom])
+[outline] ([bullet points] [numbered list] [checklist] [tree])
+
+[INTERACTION] ([forms] [buttons] [modals] [drag and drop])
+[forms] ([text field] [text area] [dropdown] [checkbox] [radio button] [submit button])
+[buttons] ([primary] [secondary] [icon button] [toggle button])
+[modals] ([alert] [confirmation] [settings] [form modal])
+[drag and drop] ([kanban] [sortable list] [reorder grid])
+
+[NAVIGATION] ([menu] [tabs] [breadcrumbs] [sidebar])
+[menu] ([main menu] [context menu] [dropdown menu])
+[tabs] ([horizontal tabs] [vertical tabs])
+[breadcrumbs] ([root] [category] [subcategory])
+[sidebar] ([collapsible] [persistent])
+
+

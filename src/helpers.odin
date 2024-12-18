@@ -1,4 +1,4 @@
-package main
+package mml
 
 import "base:runtime"
 import "core:math/linalg"
@@ -16,7 +16,7 @@ get_color :: proc(color: [4]f32) -> u32 {
 }
 
 get_token_size :: proc(token: Token) -> f32 {
-	return (linalg.sqrt(cast(f32)token.child_count + 1)) * 5
+	return (linalg.log10(cast(f32)token.child_count + 1) + 1) * 5
 }
 
 get_cell_coords :: proc(pos: [2]f32, cell_size: f32) -> [2]i32 {
@@ -25,6 +25,7 @@ get_cell_coords :: proc(pos: [2]f32, cell_size: f32) -> [2]i32 {
 
 get_screen_to_world :: proc(v: [2]f32, camera: Camera) -> [2]f32 {
 	return (v * camera.zoom) + camera.target
+	//return (v * camera.zoom) + camera.target
 }
 
 get_hash_key :: proc(pos: [2]i32, number_of_particles: i32) -> i32 {
@@ -77,12 +78,9 @@ init_window :: proc(
 	INFO_F("Created Window of size %ix%i", glfw.GetWindowSize(window))
 
 	glfw.MakeContextCurrent(window)
-	glfw.SetFramebufferSizeCallback(
-		window,
-		proc "c" (window: glfw.WindowHandle, width, height: i32) {
-			gl.Viewport(0, 0, width, height)
-		},
-	)
+	glfw.SetFramebufferSizeCallback(window, proc "c" (window: glfw.WindowHandle, width, height: i32) {
+		gl.Viewport(0, 0, width, height)
+	})
 
 	gl.load_up_to(cast(int)GL_MAJOR, cast(int)GL_MINOR, glfw.gl_set_proc_address)
 	gl.Viewport(0, 0, width, height)

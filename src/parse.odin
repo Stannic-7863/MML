@@ -1,4 +1,4 @@
-package main
+package mml
 
 import "core:fmt"
 import "core:os/os2"
@@ -22,13 +22,7 @@ Parser_Connection_Token :: struct {
 	child:  [dynamic]string,
 }
 
-parse_mml_from_file :: proc(
-	path: string,
-) -> (
-	mml_file: [dynamic]byte,
-	tokens: [dynamic]Token,
-	ok: bool,
-) {
+parse_mml_from_file :: proc(path: string) -> (mml_file: [dynamic]byte, tokens: [dynamic]Token, ok: bool) {
 	file, err := os2.read_entire_file_from_path(path, context.temp_allocator)
 
 	if err != nil {
@@ -130,10 +124,7 @@ parse_mml :: proc(mml_str: string) -> [dynamic]Token {
 			parser_token_start_index = parser_loop_index + 1
 		case ']':
 			if add_child_mode {
-				append(
-					&current_connection_token.child,
-					mml_str[parser_token_start_index:parser_loop_index],
-				)
+				append(&current_connection_token.child, mml_str[parser_token_start_index:parser_loop_index])
 				break
 			}
 			t: Parser_Connection_Token
@@ -185,10 +176,7 @@ parse_mml :: proc(mml_str: string) -> [dynamic]Token {
 					}
 					backing_buffer := make([dynamic]byte, len(data))
 					copy(backing_buffer[:], data)
-					append(
-						&current_token.associated_files,
-						Associated_File{path = p_t.value, backing_buffer = backing_buffer},
-					)
+					append(&current_token.associated_files, Associated_File{path = p_t.value, backing_buffer = backing_buffer})
 				}
 			}
 			last_identifier_index = index
