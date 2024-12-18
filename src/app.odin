@@ -30,7 +30,7 @@ run :: proc() {
 
 	set_style_everforest()
 
-	im.FontAtlas_AddFontFromFileTTF(im.GetIO().Fonts, "./Assets/JetBrainsMono-Regular.ttf", 16)
+	im.FontAtlas_AddFontFromFileTTF(im.GetIO().Fonts, "./src/Assets/JetBrainsMono-Regular.ttf", 16)
 
 	state: State = new_state()
 
