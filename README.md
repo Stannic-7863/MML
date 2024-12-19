@@ -1,5 +1,6 @@
 # Info 
 A simple app that tries to replicate obsidian's graph view (With a twist). The app uses a notation called mml (Mind map language) which I created to construct and display the graph. 
+![Screenshot](screenshot.png)
 
 ## MML notation 
 You start by defining the nodes, their content and associated files first. Name of node must be enclosed by square brackets `[]` while the content must be enclosed with `{ /}`. A path for associated file must be enclosed by `" "` and should be outside of content blocks. Path is relative to .mml file. Example 
