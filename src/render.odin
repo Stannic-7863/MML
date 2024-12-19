@@ -83,9 +83,9 @@ render_associated_data :: proc(state: ^State) {
 
 render_data_selection :: proc(state: ^State) {
 	im.BeginChild("Data Selection for Viewing", {}, {.FrameStyle, .ResizeY})
+	defer im.EndChild()
 
 	if state.mouse.clicked_token == nil {
-		im.EndChild()
 		return
 	}
 
@@ -113,20 +113,18 @@ render_data_selection :: proc(state: ^State) {
 			append(&state.mouse.clicked_token.tabs, inline_content)
 		}
 	}
-
-	im.EndChild()
 }
 
 render_data_edit :: proc(state: ^State) {
-
 	im.BeginChild("Data View", {}, {.FrameStyle})
+	defer im.EndChild()
 
 	if state.mouse.clicked_token == nil {
-		im.EndChild()
 		return
 	}
 
 	im.BeginTabBar("associated data editor tab bar")
+	defer im.EndTabBar()
 
 	to_close: int = -1
 
@@ -134,7 +132,9 @@ render_data_edit :: proc(state: ^State) {
 		is_open: bool = true
 		switch v in tab {
 		case ^Associated_File:
-			if im.BeginTabItem(fmt.ctprintf("%s", v.path), &is_open) {
+			if im.BeginTabItem(fmt.ctprintf("%s ##hidden %i", v.path, index), &is_open) {
+				defer im.EndTabItem()
+
 				im.SeparatorText(fmt.ctprint(v.path))
 
 				avail_space := im.GetContentRegionAvail()
@@ -164,7 +164,6 @@ render_data_edit :: proc(state: ^State) {
 					multiline_edit_resize_callback,
 					&v.backing_buffer,
 				)
-				im.EndTabItem()
 			}
 		case string:
 			if im.BeginTabItem(fmt.ctprintf("[ReadOnly] Inline Block %i", index), &is_open) {
@@ -182,15 +181,11 @@ render_data_edit :: proc(state: ^State) {
 	if to_close >= 0 {
 		unordered_remove(&state.mouse.clicked_token.tabs, to_close)
 	}
-
-	im.EndTabBar()
-	im.EndChild()
 }
 
 render_config_settings :: proc(config: ^Config) {
 
 	im.PushStyleColorImVec4(im.Col.FrameBg, im.GetStyle().Colors[im.Col.WindowBg])
-
 	if im.CollapsingHeader("Settings") {
 		// Render settings
 		im.Indent()
@@ -225,37 +220,31 @@ render_config_settings :: proc(config: ^Config) {
 }
 
 render_mml_editor :: proc(state: ^State) {
-
 	if im.CollapsingHeader("mml editor") {
+
+		im.PushStyleColorImVec4(im.Col.FrameBg, im.GetStyle().Colors[im.Col.WindowBg])
+		defer im.PopStyleColor()
 
 		if !state.mml.is_loaded {
 			return
 		}
 
 		avail_space := im.GetContentRegionAvail()
-		button_size := im.CalcTextSize("Discard Commit").x + 2 * im.GetStyle().ItemSpacing.x + 2 * im.GetStyle().FramePadding.x * 2
-
-		im.SameLine(avail_space.x - button_size)
 
 		if im.IsWindowFocused() && im.IsKeyDown(.LeftCtrl) && im.IsKeyPressed(.S) {
 			write_to_associated_file(state.mml.file.path, state.mml.file.backing_buffer[:])
 			reload_tokens(state)
 		}
 
-		if im.Button("Commit") {
-			write_to_associated_file(state.mml.file.path, state.mml.file.backing_buffer[:])
-			reload_tokens(state)
-		}
-
-		if im.IsItemHovered() {
-			im.SetTooltip("Ctrl + s to save")
-		}
 		buf_cstr := cstring(raw_data(state.mml.file.backing_buffer[:]))
+		text_space := im.CalcTextSize(buf_cstr, nil, false, avail_space.x)
+		text_space.x = avail_space.x
+		text_space.y += 60
 		im.InputTextMultiline(
 			"##hidden Associated File Edit",
 			buf_cstr,
 			len(state.mml.file.backing_buffer) + 1, // for null termination
-			avail_space,
+			text_space,
 			{.AllowTabInput, .CallbackResize},
 			multiline_edit_resize_callback,
 			&state.mml.file.backing_buffer,

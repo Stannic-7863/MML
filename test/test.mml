@@ -1,0 +1,13 @@
+[ROOT] {Root Node/} 
+
+[Test Node 1] {Multiple inline blocks/} {Second Block/} {Third Block/}
+[Test Node 2] {File Loading/} "test.md" {/}
+[Test Node 3] {/}
+[Test Node 4] {/}
+
+<>
+
+[ROOT] ([Test Node 1] [Test Node 2] [Test Node 3] [Test Node 4])
+[Test Node 1] ([Test Node 2])
+[Test Node 2] ([Test Node 3])
+[Test Node 4] ([Test Node 3])

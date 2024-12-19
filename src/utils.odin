@@ -37,7 +37,7 @@ reload_state :: proc(state: ^State) {
 }
 
 reload_tokens :: proc(state: ^State) {
-	tokens := parse_mml(string(state.mml.file.backing_buffer[:]))
+	tokens := parse_mml(string(state.mml.file.backing_buffer[:]), state.mml.file.path)
 	delete_state_token_data(state^)
 	state.look_up = make(map[i32]i32)
 	state.tokens = make([dynamic]Token)

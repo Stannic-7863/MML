@@ -38,12 +38,12 @@ parse_mml_from_file :: proc(path: string) -> (mml_file: [dynamic]byte, tokens: [
 		append(&backing_buff, b)
 	}
 
-	tokens = parse_mml(cast(string)backing_buff[:])
+	tokens = parse_mml(cast(string)backing_buff[:], path)
 
 	return backing_buff, tokens, true
 }
 
-parse_mml :: proc(mml_str: string) -> [dynamic]Token {
+parse_mml :: proc(mml_str: string, path: string) -> [dynamic]Token {
 	parser_tokens: [dynamic]Parser_Token
 	defer delete(parser_tokens)
 	parser_connection_tokens: [dynamic]Parser_Connection_Token
@@ -169,12 +169,27 @@ parse_mml :: proc(mml_str: string) -> [dynamic]Token {
 					append(&current_token.inline_contents, p_t.value)
 
 				case .File_Path:
-					data, err := os2.read_entire_file_from_path(p_t.value, context.temp_allocator)
+					last_slash: int
+					for i := len(path) - 1; i >= 0; i -= 1 {
+						if path[i] == '/' || path[i] == '\\' {
+							last_slash = i
+							break
+						}
+					}
+
+					mml_dir := path[:last_slash]
+
+					if mml_dir == "" {
+						break
+					}
+
+					data, err := os2.read_entire_file_from_path(fmt.tprintf("%s/%s", mml_dir, p_t.value), context.temp_allocator)
 					if err != nil {
 						ERROR_F("Error : %v", err)
 						break
 					}
-					backing_buffer := make([dynamic]byte, len(data))
+
+					backing_buffer := make([dynamic]byte, len(data) + 1)
 					copy(backing_buffer[:], data)
 					append(&current_token.associated_files, Associated_File{path = p_t.value, backing_buffer = backing_buffer})
 				}
