@@ -191,7 +191,10 @@ parse_mml :: proc(mml_str: string, path: string) -> [dynamic]Token {
 
 					backing_buffer := make([dynamic]byte, len(data) + 1)
 					copy(backing_buffer[:], data)
-					append(&current_token.associated_files, Associated_File{path = p_t.value, backing_buffer = backing_buffer})
+					append(
+						&current_token.associated_files,
+						Associated_File{path = fmt.aprintf("%s/%s", mml_dir, p_t.value), backing_buffer = backing_buffer},
+					)
 				}
 			}
 			last_identifier_index = index
