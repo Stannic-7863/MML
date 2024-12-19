@@ -1,3 +1,0 @@
-[submodule "src/nfd"]
-	path = src/nfd
-	url = git@github.com:ivansouzamf/nativefiledialog-odin.git
