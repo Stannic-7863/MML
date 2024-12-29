@@ -34,7 +34,6 @@ run :: proc() {
 
 	state: State = new_state()
 
-
 	for (!glfw.WindowShouldClose(window)) {
 		free_all(context.temp_allocator)
 
@@ -44,6 +43,7 @@ run :: proc() {
 		begin()
 		main_menu(&state)
 		main_window(&state)
+
 		end(window)
 	}
 

@@ -2,7 +2,6 @@ package mml
 
 import "core:time"
 
-// hold data to any associated file, loaded when parsing mml
 Associated_File :: struct {
 	path:           string,
 	backing_buffer: [dynamic]byte,
@@ -27,30 +26,34 @@ Token :: struct {
 	associated_files: [dynamic]Associated_File,
 }
 
+Physics :: struct {
+	cell_size:                 f32,
+	damping_factor:            f32,
+	scale_factor:              f32,
+	min_distance:              f32,
+	max_distance:              f32,
+	sibling_min_distance:      f32,
+	sibling_repulsive_force:   f32,
+	neighbour_min_distance:    f32,
+	neighbour_repulsive_force: f32,
+	global_gravity:            f32,
+	repulsive_force:           f32,
+	attraction_force:          f32,
+	global_center:             [2]f32,
+}
+
+Render :: struct {
+	line_thickness: f32,
+	color_font:     [4]f32,
+	color_hovered:  [4]f32,
+	color_dragged:  [4]f32,
+	color_default:  [4]f32,
+	color_selected: [4]f32,
+}
+
 Config :: struct {
-	physics: struct {
-		cell_size:                 f32,
-		damping_factor:            f32,
-		scale_factor:              f32,
-		min_distance:              f32,
-		max_distance:              f32,
-		sibling_min_distance:      f32,
-		sibling_repulsive_force:   f32,
-		neighbour_min_distance:    f32,
-		neighbour_repulsive_force: f32,
-		global_gravity:            f32,
-		repulsive_force:           f32,
-		attraction_force:          f32,
-		global_center:             [2]f32,
-	},
-	render:  struct {
-		line_thickness: f32,
-		color_font:     [4]f32,
-		color_hovered:  [4]f32,
-		color_dragged:  [4]f32,
-		color_default:  [4]f32,
-		color_selected: [4]f32,
-	},
+	physics: Physics,
+	render:  Render,
 }
 
 Camera :: struct {
