@@ -34,6 +34,5 @@ main :: proc() {
 		}
 	}
 
-	// main program
 	mml.run()
 }
