@@ -34,7 +34,7 @@ get_hash_key :: proc(pos: [2]i32, number_of_particles: i32) -> i32 {
 	return (x_hash + y_hash) % number_of_particles
 }
 
-// recursive, includes childs of childs and so on 
+// recursive, includes all branching childs
 get_total_childs :: proc(t: Token) -> int {
 	child: int = len(t.childs)
 	for c in t.childs {
@@ -42,7 +42,8 @@ get_total_childs :: proc(t: Token) -> int {
 	}
 	return child
 }
-
+import "core:fmt"
+// call back to resize the input buffer
 multiline_edit_resize_callback :: proc "c" (data: ^im.InputTextCallbackData) -> i32 {
 	context = runtime.default_context()
 	for event in data.EventFlag {

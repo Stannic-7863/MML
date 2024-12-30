@@ -14,10 +14,7 @@ run :: proc() {
 	nfd.Init()
 	defer nfd.Quit()
 
-	window, ok := init_window(800, 800, "MML VIEWER")
-	if !ok {
-		return
-	}
+	window, _ := init_window(800, 800, "MML VIEWER")
 	defer close_window(window)
 
 	im.CreateContext()
@@ -54,10 +51,9 @@ main_window :: proc(state: ^State) {
 	im.Begin("Main window", nil, {.NoTitleBar, .NoCollapse, .NoResize, .NoMove, .MenuBar, .NoBringToFrontOnFocus})
 	im.SetWindowPos(0)
 	im.SetWindowSize(im.GetIO().DisplaySize)
-	graph_view(state)
+	graph_pane(state)
 	im.SameLine()
-	stuff: type_of(state) = {}
-	data_view(state)
+	data_pane(state)
 	im.End()
 }
 
@@ -93,13 +89,13 @@ main_menu :: proc(state: ^State) {
 	}
 }
 
-graph_view :: proc(state: ^State) {
-	im.BeginChild("Graph View", {}, {.FrameStyle, .ResizeX}, {.NoScrollWithMouse, .NoScrollbar})
+graph_pane :: proc(state: ^State) {
+	im.BeginChild("Graph View", {}, {.FrameStyle, .ResizeX}, {.NoScrollWithMouse})
 	handle_tokens(state)
 	im.EndChild()
 }
 
-data_view :: proc(state: ^State) {
+data_pane :: proc(state: ^State) {
 	win_bg := im.GetStyle().Colors[im.Col.WindowBg]
 	frame_bg := im.GetStyle().Colors[im.Col.FrameBg]
 	frame_padding := im.GetStyle().FramePadding
@@ -114,7 +110,6 @@ data_view :: proc(state: ^State) {
 	render_associated_data(state)
 	im.PopStyleColor()
 	im.EndChild()
-
 }
 
 begin :: proc() {

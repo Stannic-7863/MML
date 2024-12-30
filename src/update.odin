@@ -4,9 +4,9 @@ import "core:time"
 import im "imgui"
 
 handle_tokens :: proc(state: ^State) {
+	handle_token_grid(state)
 	handle_token_physics(state)
 	handle_token_events(state)
-	handle_token_grid(state)
 	render_tokens(state)
 }
 
